@@ -1,0 +1,45 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<h1>Vendors</h1>
+<p class="sub">All merchant stores, catalogs, and sales history. New vendors appear here automatically.</p>
+
+<form class="search" method="GET" action="/admin/vendors">
+  <input name="q" value="<%= search %>" placeholder="Search store, name, or email" />
+  <button class="primary" type="submit">Search</button>
+</form>
+
+<div class="table-wrap">
+  <% if (!vendors.length) { %>
+    <p class="muted">No vendors found.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Store</th>
+          <th>Owner</th>
+          <th>Joined</th>
+          <th>Products</th>
+          <th>Sales</th>
+          <th>Revenue</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% vendors.forEach((vendor) => { %>
+          <tr>
+            <td><%= vendor.storeName || '—' %></td>
+            <td><%= vendor.name %><br /><span class="muted"><%= vendor.email %></span></td>
+            <td><%= formatDate(vendor.createdAt) %></td>
+            <td><%= vendor.productCount %></td>
+            <td><%= vendor.orderCount %></td>
+            <td>$<%= vendor.sales %></td>
+            <td><a href="/admin/vendors/<%= vendor._id %>">History →</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+</div>
+</body>
+</html>

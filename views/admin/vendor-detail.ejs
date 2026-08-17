@@ -1,0 +1,63 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<p><a href="/admin/vendors">← All vendors</a></p>
+<h1><%= vendor.storeName || vendor.name %></h1>
+<p class="sub"><%= vendor.name %> · <%= vendor.email %> · joined <%= formatDate(vendor.createdAt) %></p>
+
+<div class="grid">
+  <div class="card"><div class="stat-label">Products</div><div class="stat-value"><%= products.length %></div></div>
+  <div class="card"><div class="stat-label">Sales</div><div class="stat-value"><%= salesHistory.length %></div></div>
+  <div class="card"><div class="stat-label">Revenue</div><div class="stat-value">$<%= totalSales %></div></div>
+</div>
+
+<div class="section table-wrap">
+  <h2>Product catalog</h2>
+  <% if (!products.length) { %>
+    <p class="muted">No products listed yet. New listings will appear here.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach((product) => { %>
+          <tr>
+            <td><%= product.name %></td>
+            <td><%= product.category %></td>
+            <td>$<%= formatMoney(product.price) %></td>
+            <td><%= product.stock %></td>
+            <td><%= formatDate(product.createdAt) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<div class="section table-wrap">
+  <h2>Sales history</h2>
+  <% if (!salesHistory.length) { %>
+    <p class="muted">No sales yet. Future customer orders for this store will appear here.</p>
+  <% } else { %>
+    <% salesHistory.forEach((row) => { %>
+      <div class="card" style="margin-bottom:12px;">
+        <strong>Order <%= row.orderId %></strong>
+        <p class="muted"><%= formatDate(row.createdAt) %> · <%= row.customer?.name || 'Customer' %> · <%= row.subOrder?.status %> · $<%= formatMoney(row.subOrder?.subtotal) %></p>
+        <ul class="item-list">
+          <% (row.subOrder?.items || []).forEach((item) => { %>
+            <li><%= item.name %> × <%= item.quantity %> @ $<%= formatMoney(item.price) %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+</div>
+</body>
+</html>

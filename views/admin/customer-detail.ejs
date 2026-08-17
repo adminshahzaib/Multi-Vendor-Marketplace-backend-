@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<p><a href="/admin/customers">← All customers</a></p>
+<h1><%= customer.name %></h1>
+<p class="sub"><%= customer.email %> · joined <%= formatDate(customer.createdAt) %></p>
+
+<div class="grid">
+  <div class="card"><div class="stat-label">Orders</div><div class="stat-value"><%= orders.length %></div></div>
+  <div class="card"><div class="stat-label">Total spent</div><div class="stat-value">$<%= totalSpent %></div></div>
+</div>
+
+<div class="section table-wrap">
+  <h2>Order history</h2>
+  <% if (!orders.length) { %>
+    <p class="muted">This customer has no orders yet. Future checkouts will appear here.</p>
+  <% } else { %>
+    <% orders.forEach((order) => { %>
+      <div class="card" style="margin-bottom:12px;">
+        <strong>Order <%= order._id %></strong>
+        <p class="muted"><%= formatDate(order.createdAt) %> · $<%= formatMoney(order.totalPrice) %> · <%= order.isPaid ? 'Paid' : 'Unpaid' %></p>
+        <p>Ship to: <%= order.shippingAddress?.address %>, <%= order.shippingAddress?.city %> <%= order.shippingAddress?.postalCode %></p>
+        <% order.vendorOrders.forEach((sub) => { %>
+          <p><span class="badge"><%= sub.vendor?.storeName || sub.vendor?.name || 'Vendor' %></span> · <%= sub.status %> · $<%= formatMoney(sub.subtotal) %></p>
+          <ul class="item-list">
+            <% sub.items.forEach((item) => { %>
+              <li><%= item.name %> × <%= item.quantity %> @ $<%= formatMoney(item.price) %></li>
+            <% }) %>
+          </ul>
+        <% }) %>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+</div>
+</body>
+</html>

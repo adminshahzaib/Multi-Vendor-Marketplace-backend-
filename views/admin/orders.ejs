@@ -1,0 +1,43 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<h1>All orders</h1>
+<p class="sub">Every checkout across customers and vendors. New orders appear here automatically.</p>
+
+<div class="table-wrap">
+  <% if (!orders.length) { %>
+    <p class="muted">No orders yet.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Vendors</th>
+          <th>Total</th>
+          <th>Paid</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach((order) => { %>
+          <tr>
+            <td><%= formatDate(order.createdAt) %></td>
+            <td>
+              <%= order.customer?.name || 'Unknown' %><br />
+              <span class="muted"><%= order.customer?.email || '' %></span>
+            </td>
+            <td>
+              <% order.vendorOrders.forEach((sub) => { %>
+                <div><%= sub.vendor?.storeName || sub.vendor?.name || 'Vendor' %> · <%= sub.status %></div>
+              <% }) %>
+            </td>
+            <td>$<%= formatMoney(order.totalPrice) %></td>
+            <td><span class="badge <%= order.isPaid ? 'ok' : 'warn' %>"><%= order.isPaid ? 'Paid' : 'Unpaid' %></span></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+</div>
+</body>
+</html>

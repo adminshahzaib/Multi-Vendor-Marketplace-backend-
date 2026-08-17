@@ -1,0 +1,14 @@
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">MV Admin</div>
+      <div class="nav-links">
+        <a class="<%= active === 'dashboard' ? 'active' : '' %>" href="/admin">Dashboard</a>
+        <a class="<%= active === 'customers' ? 'active' : '' %>" href="/admin/customers">Customers</a>
+        <a class="<%= active === 'vendors' ? 'active' : '' %>" href="/admin/vendors">Vendors</a>
+        <a class="<%= active === 'orders' ? 'active' : '' %>" href="/admin/orders">Orders</a>
+        <span class="muted"><%= adminName %></span>
+        <form method="POST" action="/admin/logout" style="display:inline;">
+          <button class="logout" type="submit">Logout</button>
+        </form>
+      </div>
+    </div>
