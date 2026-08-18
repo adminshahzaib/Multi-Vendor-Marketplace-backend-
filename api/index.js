@@ -1,3 +1,4 @@
+// backend/api/index.js
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -19,16 +20,29 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Configure View Engine (Adjust relative path for views)
 app.set('view engine', 'ejs');
-// Adjusted path to point back to root views directory
 app.set('views', path.join(__dirname, '../views'));
+
+// Dynamic CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env.CLIENT_URL, // Deployed frontend URL
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Fallback to allow requests
+      }
+    },
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -40,23 +54,31 @@ app.use(
     cookie: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 12,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: process.env.NODE_ENV === 'production',
     },
   })
 );
 
-// Database & Seed Connection Middleware for Serverless Environment
-app.use(async (req, res, next) => {
+// Serverless DB & Seed initialization middleware
+let isInitialized = false;
+const initializeApp = async () => {
+  if (isInitialized) return;
   try {
     await connectDB();
     await seedAdmin();
-    next();
+    isInitialized = true;
   } catch (error) {
-    console.error('Serverless DB/Seed Initialization Error:', error);
-    res.status(500).json({ error: 'Database Connection Failed' });
+    console.error('Initialization error:', error);
   }
+};
+
+app.use(async (req, res, next) => {
+  await initializeApp();
+  next();
 });
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
@@ -66,5 +88,5 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'API is running cleanly' });
 });
 
-// Export default app for Vercel Serverless Function engine
+// Export Express app for Vercel Serverless (DO NOT call app.listen)
 export default app;

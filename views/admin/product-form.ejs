@@ -1,0 +1,217 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div style="max-width: 760px; margin: 0 auto;">
+  <div class="header-actions">
+    <div>
+      <h1><%= isEdit ? 'Edit Product' : 'Create New Product' %></h1>
+      <p class="sub">
+        <%= isEdit
+          ? 'Update product details, pricing, and inventory levels.'
+          : 'List a new platform-direct product (Vendor will be set to Null).' %>
+      </p>
+    </div>
+    <div>
+      <a href="/admin/products" class="btn btn-secondary">← Back to Products</a>
+    </div>
+  </div>
+
+  <% if (error) { %>
+    <div class="error"><%= error %></div>
+  <% } %>
+
+  <div class="card">
+    <div style="margin-bottom: 20px; padding: 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--line); border-radius: 12px;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase;">Product Ownership</div>
+      <div style="margin-top: 6px; font-size: 14px;">
+        <% if (isEdit && product && product.vendor) { %>
+          <span class="badge vendor">Vendor Product</span>
+          <strong style="margin-left: 6px;"><%= product.vendor.storeName || product.vendor.name %></strong>
+          <span class="muted">(<%= product.vendor.email %>)</span>
+        <% } else { %>
+          <span class="badge platform">Platform Direct / Admin</span>
+          <span class="muted" style="margin-left: 6px;">Vendor: <code>null</code></span>
+        <% } %>
+      </div>
+    </div>
+
+    <form method="POST" action="<%= isEdit ? '/admin/products/' + product._id + '/edit' : '/admin/products' %>" class="stack">
+      <div>
+        <label for="name">Product Name *</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          placeholder="e.g. Wireless Noise-Cancelling Headphones"
+          value="<%= product ? product.name : '' %>"
+          style="width: 100%;"
+        />
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="categoryOption">Category *</label>
+          <% 
+            const currentCat = product ? product.category : '';
+            const isCustom = currentCat && !categories.includes(currentCat);
+          %>
+          <select id="categoryOption" name="categoryOption" required style="width: 100%;" onchange="toggleCustomCategory(this.value)">
+            <% categories.forEach((cat) => { %>
+              <option value="<%= cat %>" <%= (!isCustom && currentCat === cat) ? 'selected' : '' %>><%= cat %></option>
+            <% }) %>
+            <option value="Other" <%= isCustom ? 'selected' : '' %>>Other (Custom Category)</option>
+          </select>
+        </div>
+
+        <div id="customCategoryWrap" style="<%= isCustom ? '' : 'display: none;' %>">
+          <label for="customCategory">Custom Category Name *</label>
+          <input
+            type="text"
+            id="customCategory"
+            name="customCategory"
+            placeholder="Enter custom category"
+            value="<%= isCustom ? currentCat : '' %>"
+            style="width: 100%;"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="price">Price ($) *</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            required
+            step="0.01"
+            min="0"
+            placeholder="29.99"
+            value="<%= product ? product.price : '' %>"
+            style="width: 100%;"
+          />
+        </div>
+
+        <div>
+          <label for="originalPrice">Original Price / MSRP ($)</label>
+          <input
+            type="number"
+            id="originalPrice"
+            name="originalPrice"
+            step="0.01"
+            min="0"
+            placeholder="39.99 (Optional discount)"
+            value="<%= product && product.originalPrice ? product.originalPrice : '' %>"
+            style="width: 100%;"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label for="stock">Inventory Stock *</label>
+          <input
+            type="number"
+            id="stock"
+            name="stock"
+            required
+            min="0"
+            placeholder="50"
+            value="<%= product ? product.stock : '10' %>"
+            style="width: 100%;"
+          />
+        </div>
+
+        <div>
+          <label for="image">Image URL</label>
+          <input
+            type="url"
+            id="image"
+            name="image"
+            placeholder="https://images.unsplash.com/..."
+            value="<%= product ? product.image : '' %>"
+            oninput="updateImagePreview(this.value)"
+            style="width: 100%;"
+          />
+        </div>
+      </div>
+
+      <!-- Image Live Preview -->
+      <div id="imagePreviewContainer" style="display: flex; align-items: center; gap: 14px; padding: 12px; background: #0f172a; border-radius: 10px; border: 1px solid var(--line);">
+        <img
+          id="imagePreview"
+          src="<%= (product && product.image) ? product.image : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e' %>"
+          alt="Preview"
+          style="width: 64px; height: 64px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line);"
+          onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e'"
+        />
+        <div style="font-size: 12px; color: var(--muted);">
+          <strong>Image Preview</strong>
+          <div>Image will display in the marketplace catalog and product details.</div>
+        </div>
+      </div>
+
+      <div>
+        <label for="description">Description *</label>
+        <textarea
+          id="description"
+          name="description"
+          required
+          placeholder="Detailed product overview, features, specifications..."
+          rows="4"
+        ><%= product ? product.description : '' %></textarea>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+        <a href="/admin/products" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn primary">
+          <%= isEdit ? 'Save Changes' : 'Publish Product' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function toggleCustomCategory(value) {
+    const wrap = document.getElementById('customCategoryWrap');
+    const input = document.getElementById('customCategory');
+    if (value === 'Other') {
+      wrap.style.display = 'block';
+      input.required = true;
+      input.focus();
+    } else {
+      wrap.style.display = 'none';
+      input.required = false;
+    }
+  }
+
+  function updateImagePreview(url) {
+    const preview = document.getElementById('imagePreview');
+    if (url && url.trim()) {
+      preview.src = url.trim();
+    } else {
+      preview.src = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e';
+    }
+  }
+
+  // Price validation: selling price cannot be higher than original price
+  (function() {
+    const form = document.querySelector('form.stack');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+      const priceVal = parseFloat(document.getElementById('price').value);
+      const origPriceInput = document.getElementById('originalPrice');
+      const origPriceVal = origPriceInput.value ? parseFloat(origPriceInput.value) : null;
+      if (origPriceVal !== null && !isNaN(origPriceVal) && origPriceVal < priceVal) {
+        e.preventDefault();
+        alert('Selling Price cannot be higher than Original Price (MSRP).');
+      }
+    });
+  })();
+</script>
+
+</div>
+</body>
+</html>

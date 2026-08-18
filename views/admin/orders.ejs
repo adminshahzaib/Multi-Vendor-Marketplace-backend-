@@ -1,43 +1,137 @@
 <%- include('../partials/head') %>
 <%- include('../partials/nav') %>
-<h1>All orders</h1>
-<p class="sub">Every checkout across customers and vendors. New orders appear here automatically.</p>
+
+<div class="header-actions">
+  <div>
+    <h1>Orders Management</h1>
+    <p class="sub">Manage customer orders, track multi-vendor fulfillment, and update delivery statuses.</p>
+  </div>
+</div>
+
+<% if (success) { %>
+  <div class="success"><%= success %></div>
+<% } %>
+
+<% if (error) { %>
+  <div class="error"><%= error %></div>
+<% } %>
 
 <div class="table-wrap">
   <% if (!orders.length) { %>
-    <p class="muted">No orders yet.</p>
+    <p class="muted" style="text-align: center; padding: 32px 0;">No orders placed yet.</p>
   <% } else { %>
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Customer</th>
-          <th>Vendors</th>
-          <th>Total</th>
-          <th>Paid</th>
+          <th>Order Info</th>
+          <th>Customer & Shipping</th>
+          <th>Fulfillment & Sub-Orders</th>
+          <th>Total & Payment</th>
         </tr>
       </thead>
       <tbody>
         <% orders.forEach((order) => { %>
-          <tr>
-            <td><%= formatDate(order.createdAt) %></td>
-            <td>
-              <%= order.customer?.name || 'Unknown' %><br />
-              <span class="muted"><%= order.customer?.email || '' %></span>
+          <tr style="vertical-align: top;">
+            <td style="min-width: 140px;">
+              <strong>#<%= String(order._id).slice(-8).toUpperCase() %></strong>
+              <div class="muted" style="font-size: 11px; margin-top: 4px;">
+                <%= formatDate(order.createdAt) %>
+              </div>
+              <div style="margin-top: 8px;">
+                <span class="badge" style="background: #1e293b; border: 1px solid var(--line); font-size: 10px;">
+                  <%= order.paymentMethod %>
+                </span>
+              </div>
             </td>
-            <td>
-              <% order.vendorOrders.forEach((sub) => { %>
-                <div><%= sub.vendor?.storeName || sub.vendor?.name || 'Vendor' %> · <%= sub.status %></div>
-              <% }) %>
+
+            <td style="min-width: 180px;">
+              <strong><%= order.customer?.name || 'Customer' %></strong>
+              <div class="muted" style="font-size: 11px;"><%= order.customer?.email || 'No email' %></div>
+              
+              <div style="margin-top: 8px; font-size: 12px; color: var(--muted); line-height: 1.4;">
+                📍 <%= order.shippingAddress?.address %><br />
+                <%= order.shippingAddress?.city %>, <%= order.shippingAddress?.postalCode %><br />
+                <%= order.shippingAddress?.country %>
+              </div>
             </td>
-            <td>$<%= formatMoney(order.totalPrice) %></td>
-            <td><span class="badge <%= order.isPaid ? 'ok' : 'warn' %>"><%= order.isPaid ? 'Paid' : 'Unpaid' %></span></td>
+
+            <td style="min-width: 320px;">
+              <div style="display: grid; gap: 12px;">
+                <% order.vendorOrders.forEach((sub) => { %>
+                  <div style="background: #0f172a; border: 1px solid var(--line); border-radius: 10px; padding: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                      <div>
+                        <% if (sub.vendor) { %>
+                          <span class="badge vendor" style="font-size: 10px;">
+                            🏬 <%= sub.vendor.storeName || sub.vendor.name %>
+                          </span>
+                        <% } else { %>
+                          <span class="badge platform" style="font-size: 10px;">
+                            🛡️ Platform Direct / Admin
+                          </span>
+                        <% } %>
+                      </div>
+
+                      <!-- Sub-Order Status Form -->
+                      <form
+                        method="POST"
+                        action="/admin/orders/<%= order._id %>/suborders/<%= sub._id %>/status"
+                        style="display: flex; align-items: center; gap: 6px;"
+                      >
+                        <select
+                          name="status"
+                          onchange="this.form.submit()"
+                          style="padding: 4px 8px; font-size: 11px; font-weight: 700; border-radius: 6px;"
+                        >
+                          <option value="pending" <%= sub.status === 'pending' ? 'selected' : '' %>>⏳ Pending</option>
+                          <option value="processing" <%= sub.status === 'processing' ? 'selected' : '' %>>⚙️ Processing</option>
+                          <option value="shipped" <%= sub.status === 'shipped' ? 'selected' : '' %>>🚚 Shipped</option>
+                          <option value="delivered" <%= sub.status === 'delivered' ? 'selected' : '' %>>✅ Delivered</option>
+                          <option value="cancelled" <%= sub.status === 'cancelled' ? 'selected' : '' %>>❌ Cancelled</option>
+                        </select>
+                      </form>
+                    </div>
+
+                    <!-- Items in sub-order -->
+                    <div style="font-size: 12px; color: var(--text);">
+                      <% sub.items.forEach((item) => { %>
+                        <div style="display: flex; justify-content: space-between; padding: 2px 0;">
+                          <span>• <%= item.name %> <span class="muted">(x<%= item.quantity %>)</span></span>
+                          <span class="muted">$<%= formatMoney(item.price * item.quantity) %></span>
+                        </div>
+                      <% }) %>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 6px; font-size: 11px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 4px;">
+                      Subtotal: <strong style="color: var(--text);">$<%= formatMoney(sub.subtotal) %></strong>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            </td>
+
+            <td style="min-width: 140px;">
+              <div style="font-size: 18px; font-weight: 800; color: var(--text);">
+                $<%= formatMoney(order.totalPrice) %>
+              </div>
+              <div style="margin-top: 8px;">
+                <span class="badge <%= order.isPaid ? 'ok' : 'warn' %>">
+                  <%= order.isPaid ? '✅ Paid' : '⏳ Pay on Delivery' %>
+                </span>
+              </div>
+              <% if (order.paidAt) { %>
+                <div class="muted" style="font-size: 10px; margin-top: 4px;">
+                  Paid on <%= formatDate(order.paidAt) %>
+                </div>
+              <% } %>
+            </td>
           </tr>
         <% }) %>
       </tbody>
     </table>
   <% } %>
 </div>
+
 </div>
 </body>
 </html>

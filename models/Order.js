@@ -15,7 +15,8 @@ const vendorSubOrderSchema = new mongoose.Schema({
   vendor: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: false,
+    default: null,
   },
   items: [subOrderItemSchema],
   subtotal: { type: Number, required: true },

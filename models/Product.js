@@ -5,7 +5,8 @@ const productSchema = new mongoose.Schema(
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: false,
+      default: null,
     },
     name: { type: String, required: true, trim: true },
     description: { type: String, required: true },

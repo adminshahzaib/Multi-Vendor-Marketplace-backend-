@@ -1,0 +1,138 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+
+<div class="header-actions">
+  <div>
+    <h1>Products Management</h1>
+    <p class="sub">View, edit, and create all marketplace products (Platform + Vendors).</p>
+  </div>
+  <div>
+    <a href="/admin/products/new" class="btn">+ Add Product</a>
+  </div>
+</div>
+
+<% if (success) { %>
+  <div class="success"><%= success %></div>
+<% } %>
+
+<% if (error) { %>
+  <div class="error"><%= error %></div>
+<% } %>
+
+<form method="GET" action="/admin/products" class="search">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search by product, category, vendor..."
+    value="<%= search %>"
+    style="flex: 1; min-width: 200px;"
+  />
+  <select name="category" onchange="this.form.submit()" style="min-width: 160px;">
+    <option value="All" <%= selectedCategory === 'All' ? 'selected' : '' %>>All Categories</option>
+    <% categories.forEach((cat) => { %>
+      <option value="<%= cat %>" <%= selectedCategory === cat ? 'selected' : '' %>><%= cat %></option>
+    <% }) %>
+  </select>
+  <button class="primary" type="submit">Filter</button>
+  <% if (search || (selectedCategory && selectedCategory !== 'All')) { %>
+    <a href="/admin/products" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center;">Reset</a>
+  <% } %>
+</form>
+
+<div class="table-wrap">
+  <% if (!products.length) { %>
+    <p class="muted" style="text-align: center; padding: 32px 0;">No products found matching criteria.</p>
+  <% } else { %>
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Owner / Vendor</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Date</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach((product) => { %>
+          <tr>
+            <td>
+              <div class="flex-center">
+                <img
+                  src="<%= product.image || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e' %>"
+                  alt="<%= product.name %>"
+                  class="img-thumb"
+                  onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e'"
+                />
+                <div>
+                  <strong><%= product.name %></strong>
+                  <div class="muted" style="font-size: 11px;">ID: <%= product._id %></div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge" style="background: #1e293b; border: 1px solid var(--line); color: var(--text);">
+                <%= product.category %>
+              </span>
+            </td>
+            <td>
+              <% if (product.vendor) { %>
+                <a href="/admin/vendors/<%= product.vendor._id %>">
+                  <span class="badge vendor">
+                    🏬 <%= product.vendor.storeName || product.vendor.name %>
+                  </span>
+                </a>
+                <div class="muted" style="font-size: 11px; margin-top: 2px;">
+                  <%= product.vendor.name %> (<%= product.vendor.email %>)
+                </div>
+              <% } else { %>
+                <span class="badge platform">
+                  🛡️ Platform Direct / Admin
+                </span>
+              <% } %>
+            </td>
+            <td>
+              <strong>$<%= formatMoney(product.price) %></strong>
+              <% if (product.originalPrice && product.originalPrice > product.price) { %>
+                <span class="muted" style="text-decoration: line-through; font-size: 12px; margin-left: 4px;">
+                  $<%= formatMoney(product.originalPrice) %>
+                </span>
+              <% } %>
+            </td>
+            <td>
+              <% if (product.stock <= 0) { %>
+                <span class="badge danger">Out of stock</span>
+              <% } else if (product.stock <= 5) { %>
+                <span class="badge warn"><%= product.stock %> left</span>
+              <% } else { %>
+                <span class="badge ok"><%= product.stock %> units</span>
+              <% } %>
+            </td>
+            <td>
+              <span class="muted" style="font-size: 12px;"><%= formatDate(product.createdAt) %></span>
+            </td>
+            <td>
+              <div class="actions" style="justify-content: flex-end;">
+                <a href="/admin/products/<%= product._id %>/edit" class="btn btn-secondary btn-sm">Edit</a>
+                <form
+                  method="POST"
+                  action="/admin/products/<%= product._id %>/delete"
+                  onsubmit="return confirm('Are you sure you want to delete this product?');"
+                  style="display: inline;"
+                >
+                  <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+</div>
+</body>
+</html>

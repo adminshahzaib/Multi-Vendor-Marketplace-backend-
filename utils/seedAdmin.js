@@ -1,9 +1,9 @@
 import User from '../models/User.js';
 
 const seedAdmin = async () => {
-  const email = (process.env.ADMIN_EMAIL || 'admin@marketplace.com').toLowerCase();
-  const password = process.env.ADMIN_PASSWORD || 'Admin@12345';
-  const name = process.env.ADMIN_NAME || 'Marketplace Admin';
+  const email = (process.env.ADMIN_EMAIL).toLowerCase();
+  const password = process.env.ADMIN_PASSWORD;
+  const name = process.env.ADMIN_NAME;
 
   const existing = await User.findOne({ email });
   if (existing) {

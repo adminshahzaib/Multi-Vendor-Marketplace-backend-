@@ -4,10 +4,10 @@
 <p class="sub">Live snapshot of stored and upcoming marketplace data.</p>
 
 <div class="grid">
-  <div class="card"><div class="stat-label">Customers</div><div class="stat-value"><%= stats.customerCount %></div></div>
-  <div class="card"><div class="stat-label">Vendors</div><div class="stat-value"><%= stats.vendorCount %></div></div>
-  <div class="card"><div class="stat-label">Products</div><div class="stat-value"><%= stats.productCount %></div></div>
-  <div class="card"><div class="stat-label">Orders</div><div class="stat-value"><%= stats.orderCount %></div></div>
+  <a href="/admin/customers" class="card" style="display:block; text-decoration:none;"><div class="stat-label">Customers</div><div class="stat-value"><%= stats.customerCount %></div></a>
+  <a href="/admin/vendors" class="card" style="display:block; text-decoration:none;"><div class="stat-label">Vendors</div><div class="stat-value"><%= stats.vendorCount %></div></a>
+  <a href="/admin/products" class="card" style="display:block; text-decoration:none;"><div class="stat-label">Products</div><div class="stat-value"><%= stats.productCount %></div></a>
+  <a href="/admin/orders" class="card" style="display:block; text-decoration:none;"><div class="stat-label">Orders</div><div class="stat-value"><%= stats.orderCount %></div></a>
   <div class="card"><div class="stat-label">Revenue</div><div class="stat-value">$<%= stats.revenue %></div></div>
 </div>
 

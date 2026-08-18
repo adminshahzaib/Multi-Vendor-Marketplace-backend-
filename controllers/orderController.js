@@ -48,12 +48,12 @@ export const createOrder = async (req, res) => {
       const itemTotalPrice = dbProduct.price * item.quantity;
       calculatedTotalPrice += itemTotalPrice;
 
-      const vendorId = dbProduct.vendor.toString();
+      const vendorId = dbProduct.vendor ? dbProduct.vendor.toString() : 'direct';
 
       // Group items by vendor ID
       if (!vendorMap[vendorId]) {
         vendorMap[vendorId] = {
-          vendor: vendorId,
+          vendor: dbProduct.vendor || null,
           items: [],
           subtotal: 0,
         };
@@ -125,7 +125,7 @@ export const getVendorOrders = async (req, res) => {
     // Isolate sub-orders relevant only to this vendor
     const filteredOrders = parentOrders.map((order) => {
       const vendorSubOrder = order.vendorOrders.find(
-        (v) => v.vendor.toString() === req.user._id.toString()
+        (v) => v.vendor && v.vendor.toString() === req.user._id.toString()
       );
 
       return {
@@ -159,7 +159,7 @@ export const updateVendorOrderStatus = async (req, res) => {
     }
 
     const subOrder = order.vendorOrders.find(
-      (v) => v.vendor.toString() === req.user._id.toString()
+      (v) => v.vendor && v.vendor.toString() === req.user._id.toString()
     );
 
     if (!subOrder) {
