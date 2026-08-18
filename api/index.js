@@ -12,6 +12,7 @@ import authRoutes from '../routes/authRoutes.js';
 import productRoutes from '../routes/productRoutes.js';
 import orderRoutes from '../routes/orderRoutes.js';
 import adminPageRoutes from '../routes/adminPageRoutes.js';
+import MongoStore from 'connect-mongo';
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.set('trust proxy', 1);
 
 // Configure View Engine (Adjust relative path for views)
 app.set('view engine', 'ejs');
@@ -51,6 +54,10 @@ app.use(
     secret: process.env.SESSION_SECRET || 'marketplace-admin-session',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 12 * 60 * 60, // 12 hours
+    }),
     cookie: {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 12,
@@ -87,6 +94,7 @@ app.use(adminPageRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'API is running cleanly' });
 });
+
 
 // Export Express app for Vercel Serverless (DO NOT call app.listen)
 export default app;
